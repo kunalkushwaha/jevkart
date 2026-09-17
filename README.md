@@ -81,3 +81,22 @@ and ANSI escapes only.
 
 The key is read from `API_KEY`, falling back to a local `.env`. `.env` is
 gitignored and never committed.
+
+## Credits
+
+The demo GIF was recorded and rendered entirely with
+[Marcin Kulik](https://github.com/ku1ik)'s tools:
+
+- [asciinema](https://github.com/asciinema/asciinema) recorded the terminal session
+- [agg](https://github.com/asciinema/agg) turned the cast into the GIF
+
+Both are GPL-3.0. Typeface is
+[DejaVu Sans Mono](https://github.com/dejavu-fonts/dejavu-fonts).
+
+Reproduce it with:
+
+```sh
+asciinema rec docs/demo.cast --cols 72 --rows 19 -c "./bin/jevkart -seconds 26"
+agg docs/demo.cast docs/demo.gif --font-family "DejaVu Sans Mono" \
+    --font-size 15 --fps-cap 12 --theme dracula
+```
