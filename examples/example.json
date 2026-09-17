@@ -1,0 +1,18 @@
+{
+  "state": "Help! My payouts have been failing for 3 days. I've emailed twice and nobody has replied. If this isn't fixed today I'm moving to another provider.",
+  "model": "jev-latest",
+  "questions": {
+    "is_urgent":     { "type": "noul", "instructions": "Does this convey urgency?" },
+    "is_churn_risk": { "type": "noul", "instructions": "Is this customer at risk of leaving?" },
+    "route": {
+      "type": "choice",
+      "instructions": "Which team should handle this?",
+      "criteria": { "payments": "Payment or payout failures", "support": "General questions", "billing": "Invoices and charges" }
+    },
+    "severity": {
+      "type": "score",
+      "instructions": "How severe is this issue?",
+      "criteria": ["Trivial", "Minor", "Moderate", "Serious", "Critical"]
+    }
+  }
+}
