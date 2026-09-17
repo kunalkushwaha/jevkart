@@ -2,6 +2,10 @@
 
 A terminal car driven by an LLM, built to make **API latency visible**.
 
+![jevkart demo](docs/demo.gif)
+
+*Real run: 91 decisions, avg 223ms, 14 dodged, 1 crashed.*
+
 Frames tick every 60ms. [jev](https://docs.typesafe.ai) answers in ~200ms. It
 physically cannot respond within a frame, so the car always reacts on a delay
 you can watch: the obstacle approaches, the readout says `asking`, *then* the

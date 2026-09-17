@@ -24,3 +24,9 @@ tmp/
 dist/
 build/
 bin/
+
+# python venv (recording tools)
+.venv/
+
+# recording intermediates
+*.cast

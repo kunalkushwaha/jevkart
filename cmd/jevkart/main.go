@@ -94,6 +94,7 @@ type game struct {
 func main() {
 	bench := flag.Int("bench", 0, "headless: make N sequential calls and report latency, no TUI")
 	start := flag.String("mode", "auto", "starting mode: auto (jev drives) or manual (you drive)")
+	secs := flag.Int("seconds", 0, "quit automatically after N seconds (for recording)")
 	flag.Parse()
 
 	key, err := loadKey()
@@ -111,7 +112,7 @@ func main() {
 	if *start == "manual" {
 		m = modeManual
 	}
-	runGame(client, m)
+	runGame(client, m, *secs)
 }
 
 // ---------- jev ----------
@@ -216,7 +217,7 @@ func readKeys(out chan<- string) {
 
 // ---------- game ----------
 
-func runGame(client *jev.Client, m mode) {
+func runGame(client *jev.Client, m mode, secs int) {
 	restore := rawMode()
 	defer restore()
 	fmt.Print("\033[?1049h\033[?25l")
@@ -230,8 +231,16 @@ func runGame(client *jev.Client, m mode) {
 	t := time.NewTicker(tick)
 	defer t.Stop()
 
+	var deadline <-chan time.Time
+	if secs > 0 {
+		deadline = time.After(time.Duration(secs) * time.Second)
+	}
+
 	for {
 		select {
+		case <-deadline:
+			summary(g)
+			return
 		case k := <-keys:
 			switch k {
 			case "quit":
@@ -400,18 +409,22 @@ func (g *game) view() string {
 	w("  \033[2m└%s┘\033[0m", strings.Repeat("─", trackW))
 	w("")
 
-	switch {
-	case g.inFlight:
-		w("  \033[2mjev     \033[0m  %s \033[36masking\033[0m  \033[2m%dms\033[0m", spinner(g.frame), time.Since(g.asked).Milliseconds())
-	case g.haveLast && g.last.err == nil:
-		verb := "drove"
+	// in-flight indicator and last decision are separate lines: the car re-asks
+	// almost continuously, so a single combined line would only ever show "asking".
+	if g.inFlight {
+		w("  \033[2mjev     \033[0m  %s \033[36masking\033[0m \033[2m%dms\033[0m", spinner(g.frame), time.Since(g.asked).Milliseconds())
+	} else {
+		w("  \033[2mjev     \033[0m  \033[2midle\033[0m")
+	}
+	if g.haveLast && g.last.err == nil {
+		verb := "drove  "
 		if g.mode == modeManual {
-			verb = "advises"
+			verb = "advised"
 		}
-		w("  \033[2mjev     \033[0m  %s \033[32m%-5s\033[0m \033[2mconf\033[0m %.2f  \033[2mdanger\033[0m %.2f  \033[2m%dms\033[0m",
+		w("  \033[2mlast    \033[0m  \033[2m%s\033[0m \033[1;32m%-4s\033[0m \033[2mconf\033[0m %.2f  \033[2mdanger\033[0m %.2f  \033[2m%dms\033[0m",
 			verb, g.last.move, g.last.conf, g.last.danger, g.last.lat.Milliseconds())
-	default:
-		w("  \033[2mjev     \033[0m  \033[2mwaiting for an obstacle…\033[0m")
+	} else {
+		w("  \033[2mlast    \033[0m  \033[2m—\033[0m")
 	}
 
 	if g.decisions > 0 {
